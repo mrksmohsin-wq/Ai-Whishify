@@ -1,0 +1,100 @@
+[
+  {
+    "id": "demo-birthday",
+    "eventType": "birthday",
+    "title": "Mohsin's Birthday Celebration",
+    "recipientName": "Mohsin",
+    "recipientNickname": "Mo",
+    "senderName": "Liam & Friends",
+    "relationship": "Best Friend",
+    "tone": "funny",
+    "language": "English (United States)",
+    "age": 26,
+    "birthDate": "1998-10-14",
+    "favoriteColor": "#ec4899",
+    "cakeFlavor": "Red Velvet Sparkler",
+    "personalMessage": "Happy Birthday, Mohsin! You're not getting older, you're just leveling up to new heights of greatness. Thank you for always bringing endless laughs, brilliant energy, and great vibes into our lives! Here's to making this year your most memorable and successful chapter yet! 🎂🥂",
+    "photos": [
+      {
+        "url": "https://images.unsplash.com/photo-1517841905240-472988babdf9?w=800&auto=format&fit=crop&q=80",
+        "caption": "That unforgettable road trip adventure"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=800&auto=format&fit=crop&q=80",
+        "caption": "Laughing till our stomachs hurt"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&auto=format&fit=crop&q=80",
+        "caption": "Celebrating big wins together"
+      }
+    ],
+    "musicTrack": "birthday_melody",
+    "giftRevealedItem": {
+      "type": "voucher",
+      "title": "VIP Celebration Getaway Pass",
+      "code": "MOHSIN-BDAY-2026",
+      "message": "A day of celebration and dining on us!"
+    },
+    "password": "",
+    "isScheduled": false,
+    "scheduledDate": "",
+    "status": "published",
+    "viewsCount": 18,
+    "createdAt": "2026-10-14T10:10:00.000Z",
+    "reactions": [
+      {
+        "id": "rx-1",
+        "emoji": "🥹",
+        "name": "Mohsin",
+        "reply": "Thank you so much everyone! This is the most thoughtful and coolest birthday greeting ever! 😭❤️❤️",
+        "createdAt": "2026-10-14T10:20:00.000Z"
+      }
+    ]
+  },
+  {
+    "id": "demo-anniversary",
+    "eventType": "anniversary",
+    "title": "Our 5 Glorious Years Together",
+    "recipientName": "Elena",
+    "recipientNickname": "My Love",
+    "senderName": "David",
+    "relationship": "Spouse",
+    "tone": "emotional",
+    "language": "English (United States)",
+    "yearsTogether": 5,
+    "howWeMet": "In a cozy little coffee shop in Seattle, sharing an umbrella",
+    "favoriteColor": "#e11d48",
+    "personalMessage": "Five years ago today, you took my hand and changed my whole world. Every single day with you is filled with kindness, laughter, and an overwhelming gratitude. Happy 5th Anniversary, Elena. Forever wouldn't be enough with you.",
+    "photos": [
+      {
+        "url": "https://images.unsplash.com/photo-1519741497674-611481863552?w=800&auto=format&fit=crop&q=80",
+        "caption": "The day we said yes to forever"
+      },
+      {
+        "url": "https://images.unsplash.com/photo-1522673607200-164d1b6ce486?w=800&auto=format&fit=crop&q=80",
+        "caption": "Quiet mornings together"
+      }
+    ],
+    "musicTrack": "acoustic_love",
+    "giftRevealedItem": {
+      "type": "vow",
+      "title": "Our 5-Year Vow Renewal",
+      "code": "",
+      "message": "A trip back to the Seattle coffee shop where our story first started."
+    },
+    "password": "",
+    "isScheduled": false,
+    "status": "published",
+    "viewsCount": 22,
+    "createdAt": "2026-10-14T09:00:00.000Z",
+    "reactions": [
+      {
+        "id": "rx-2",
+        "emoji": "❤️",
+        "name": "Elena",
+        "reply": "David, this made my whole morning! You are my greatest adventure. I love you endlessly!",
+        "createdAt": "2026-10-14T09:15:00.000Z"
+      }
+    ]
+  }
+]
