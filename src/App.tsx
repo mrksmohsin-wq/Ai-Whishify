@@ -17,6 +17,14 @@ import { AuthModal } from './components/auth/AuthModal';
 import { PinGateModal } from './components/player/PinGateModal';
 import { WishData, EventType } from './types/wish';
 import { EVENT_TEMPLATES } from './config/eventsConfig';
+import { auth, logOut } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import {
+  saveWishToFirestore,
+  getUserWishesFromFirestore,
+  getWishByIdFromFirestore,
+  deleteWishFromFirestore,
+} from './services/wishService';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<'home' | 'gallery' | 'dashboard' | 'pricing' | 'create' | 'player'>('home');
@@ -28,17 +36,59 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isPlayerPreviewMode, setIsPlayerPreviewMode] = useState(false);
   const [isPinGateOpen, setIsPinGateOpen] = useState(false);
-  const [user, setUser] = useState<{ name: string; email: string; avatar?: string } | null>(() => {
-    try {
-      const saved = localStorage.getItem('ai_wishify_user');
-      return saved ? JSON.parse(saved) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<{ uid?: string; name: string; email: string; avatar?: string } | null>(null);
 
-  // Fetch all wishes from the backend
-  const fetchWishes = async () => {
+  // Monitor real Firebase Auth changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const u = {
+          uid: firebaseUser.uid,
+          name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+          email: firebaseUser.email || '',
+          avatar: firebaseUser.photoURL || undefined,
+        };
+        setUser(u);
+        localStorage.setItem('ai_wishify_user', JSON.stringify(u));
+        // Fetch user's own projects from Firestore
+        await loadUserWishes(firebaseUser.uid);
+      } else {
+        const local = localStorage.getItem('ai_wishify_user');
+        if (local) {
+          try {
+            const parsed = JSON.parse(local);
+            setUser(parsed);
+            await loadUserWishes(parsed.uid);
+          } catch {
+            setUser(null);
+            await fetchAllPublicWishes();
+          }
+        } else {
+          setUser(null);
+          await fetchAllPublicWishes();
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  // Fetch all user wishes from Firestore or API
+  const loadUserWishes = async (userId: string) => {
+    try {
+      const wishes = await getUserWishesFromFirestore(userId);
+      if (wishes.length > 0) {
+        setWishesList(wishes);
+      } else {
+        await fetchAllPublicWishes();
+      }
+    } catch (err) {
+      console.error('Error loading user wishes:', err);
+      await fetchAllPublicWishes();
+    }
+  };
+
+  const fetchAllPublicWishes = async () => {
     try {
       const res = await fetch('/api/wishes');
       const data = await res.json();
@@ -49,10 +99,6 @@ export default function App() {
       console.error('Error fetching wishes:', err);
     }
   };
-
-  useEffect(() => {
-    fetchWishes();
-  }, []);
 
   // Parse URL hash for direct recipient links (/#w=:id or /#preview=:id)
   useEffect(() => {
@@ -74,14 +120,13 @@ export default function App() {
 
   const loadWishById = async (id: string, isPreview: boolean) => {
     try {
-      const res = await fetch(`/api/wishes/${id}?trackView=${!isPreview}`);
-      const data = await res.json();
-      if (data.wish) {
-        setActiveWish(data.wish);
+      const wish = await getWishByIdFromFirestore(id);
+      if (wish) {
+        setActiveWish(wish);
         setIsPlayerPreviewMode(isPreview);
 
         // Check if password protected
-        if (data.wish.password && !isPreview) {
+        if (wish.password && !isPreview) {
           setIsPinGateOpen(true);
         } else {
           setCurrentView('player');
@@ -103,24 +148,44 @@ export default function App() {
 
   const handleSaveWish = async (wish: WishData, publishNow: boolean) => {
     try {
-      const res = await fetch('/api/wishes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(wish),
-      });
-      const data = await res.json();
-      if (data.wish) {
-        setActiveWish(data.wish);
-        await fetchWishes();
-        if (publishNow) {
-          setShareModalWish(data.wish);
-        } else {
-          setCurrentView('dashboard');
-        }
+      const wishWithUser: WishData = {
+        ...wish,
+        userId: user?.uid || wish.userId || 'anonymous',
+        userEmail: user?.email || wish.userEmail || undefined,
+      };
+
+      const saved = await saveWishToFirestore(wishWithUser);
+      setActiveWish(saved);
+
+      if (user?.uid) {
+        await loadUserWishes(user.uid);
+      } else {
+        await fetchAllPublicWishes();
+      }
+
+      if (publishNow) {
+        setShareModalWish(saved);
+      } else {
+        setCurrentView('dashboard');
       }
     } catch (err) {
       console.error('Error saving wish:', err);
     }
+  };
+
+  const handleDuplicateWish = (wish: WishData) => {
+    const clone: WishData = {
+      ...wish,
+      id: 'wish-' + Math.random().toString(36).substring(2, 9),
+      title: `${wish.recipientName}'s ${EVENT_TEMPLATES[wish.eventType]?.name || 'Greeting'} (Template Copy)`,
+      viewsCount: 0,
+      reactions: [],
+      createdAt: new Date().toISOString(),
+    };
+    setEditingWish(clone);
+    setSelectedEventType(clone.eventType);
+    setCurrentView('create');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleLivePreview = (wish: WishData) => {
@@ -166,6 +231,12 @@ export default function App() {
         title: 'Celebration Voucher',
         message: 'A wonderful treat on us to celebrate your big day!',
       },
+      hasSecretCode: template.sampleWish.hasSecretCode ?? true,
+      secretCode: template.sampleWish.secretCode || '1024',
+      secretCodeHint: template.sampleWish.secretCodeHint || "Mohsin's Birthday (1024)",
+      hasCurtains: template.sampleWish.hasCurtains ?? true,
+      curtainColor: template.sampleWish.curtainColor || 'velvet_red',
+      curtainMessage: template.sampleWish.curtainMessage || `A Special Celebration for ${template.sampleWish.recipientName || 'Mohsin'}`,
       isScheduled: false,
       status: 'published',
       viewsCount: 1,
@@ -181,21 +252,40 @@ export default function App() {
 
   const handleDeleteWish = async (id: string) => {
     try {
-      await fetch(`/api/wishes/${id}`, { method: 'DELETE' });
-      await fetchWishes();
+      await deleteWishFromFirestore(id);
+      if (user?.uid) {
+        await loadUserWishes(user.uid);
+      } else {
+        await fetchAllPublicWishes();
+      }
     } catch (err) {
       console.error('Error deleting wish:', err);
     }
   };
 
-  const handleAuthSuccess = (userData: { name: string; email: string; avatar?: string }) => {
-    setUser(userData);
-    localStorage.setItem('ai_wishify_user', JSON.stringify(userData));
+  const handleRefreshWishes = async () => {
+    if (user?.uid) {
+      await loadUserWishes(user.uid);
+    } else {
+      await fetchAllPublicWishes();
+    }
   };
 
-  const handleSignOut = () => {
+  const handleAuthSuccess = async (userData: { uid: string; name: string; email: string; avatar?: string }) => {
+    setUser(userData);
+    localStorage.setItem('ai_wishify_user', JSON.stringify(userData));
+    await loadUserWishes(userData.uid);
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await logOut();
+    } catch (err) {
+      console.warn('Signout warning:', err);
+    }
     setUser(null);
     localStorage.removeItem('ai_wishify_user');
+    await fetchAllPublicWishes();
   };
 
   // If PIN Gate is active for a password-protected wish
@@ -272,13 +362,16 @@ export default function App() {
 
         {currentView === 'dashboard' && (
           <UserDashboard
+            user={user}
             wishes={wishesList}
+            onRefreshWishes={handleRefreshWishes}
             onCreateNew={() => handleStartCreating('birthday')}
             onEditWish={(wish) => {
               setEditingWish(wish);
               setSelectedEventType(wish.eventType);
               setCurrentView('create');
             }}
+            onDuplicateWish={handleDuplicateWish}
             onDeleteWish={handleDeleteWish}
             onShareWish={(wish) => setShareModalWish(wish)}
             onPreviewWish={(wish) => {
@@ -286,6 +379,7 @@ export default function App() {
               setIsPlayerPreviewMode(true);
               setCurrentView('player');
             }}
+            onOpenAuth={() => setIsAuthModalOpen(true)}
           />
         )}
 

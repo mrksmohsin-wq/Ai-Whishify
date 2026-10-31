@@ -1,0 +1,64 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile for registered creators",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Wish": {
+      "title": "Wish",
+      "description": "Customized animated greeting project or template created by a user",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "eventType": { "type": "string" },
+        "title": { "type": "string" },
+        "recipientName": { "type": "string" },
+        "recipientNickname": { "type": "string" },
+        "senderName": { "type": "string" },
+        "relationship": { "type": "string" },
+        "personalMessage": { "type": "string" },
+        "tone": { "type": "string" },
+        "language": { "type": "string" },
+        "colorTheme": { "type": "object" },
+        "musicTrack": { "type": "string" },
+        "customAudioUrl": { "type": "string" },
+        "customAudioName": { "type": "string" },
+        "age": { "type": "number" },
+        "cakeFlavor": { "type": "string" },
+        "photos": { "type": "array" },
+        "giftRevealedItem": { "type": "object" },
+        "password": { "type": "string" },
+        "isScheduled": { "type": "boolean" },
+        "scheduledDate": { "type": "string" },
+        "status": { "type": "string" },
+        "viewsCount": { "type": "number" },
+        "reactions": { "type": "array" },
+        "createdAt": { "type": "string" },
+        "updatedAt": { "type": "string" }
+      },
+      "required": ["id", "eventType", "recipientName", "senderName"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile document owned by the user"
+    },
+    "/wishes/{wishId}": {
+      "schema": "Wish",
+      "description": "User greeting projects and templates, shareable with recipients"
+    }
+  }
+}

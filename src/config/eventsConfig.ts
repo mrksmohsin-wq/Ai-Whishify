@@ -34,6 +34,12 @@ export const EVENT_TEMPLATES: Record<EventType, EventTemplateConfig> = {
       cakeFlavor: 'Velvet Confetti Sprinkles',
       tone: 'funny',
       personalMessage: "Happy Birthday, Mohsin! You bring endless laughter, incredible energy, and unforgettable memories everywhere you go. May this year level up your happiness and success to the highest peak!",
+      hasSecretCode: true,
+      secretCode: '1024',
+      secretCodeHint: "Mohsin's Birthday Date (1024)",
+      hasCurtains: true,
+      curtainColor: 'velvet_red',
+      curtainMessage: 'A Special Birthday Premiere for Mohsin',
       giftRevealedItem: {
         type: 'voucher',
         title: 'VIP Celebration Dinner Pass',
@@ -609,6 +615,45 @@ export const EVENT_TEMPLATES: Record<EventType, EventTemplateConfig> = {
         type: 'badge',
         title: 'Peak Achiever Award',
         message: 'Official acknowledgment of mastery, grit, and visionary leadership.',
+      }
+    }
+  },
+
+  bad_sad_day: {
+    id: 'bad_sad_day',
+    name: 'Bad / Sad Day (Cheer Up)',
+    tagline: 'Warm virtual hugs, comforting words, and gentle sunshine through the storm.',
+    category: 'Comfort & Care',
+    icon: '🌧️',
+    colorScheme: {
+      primary: '#4f46e5',
+      secondary: '#818cf8',
+      accent: '#38bdf8',
+      bgGradient: 'from-slate-800 via-indigo-900 to-slate-950',
+      cardBg: 'bg-white/95',
+      textColor: 'text-indigo-950',
+    },
+    defaultMusic: 'warm_ambient',
+    steps: [
+      { id: 'comfort', title: 'A Cup of Warm Comfort', subtitle: 'Take a breath and pause', interactiveType: 'bad_day_comfort' },
+      { id: 'flowers', title: 'Flowers of Hope', subtitle: 'Blooming bright for you', interactiveType: 'blooming_flowers' },
+      { id: 'letter', title: 'Words of Comfort', subtitle: 'A gentle message just for you', interactiveType: 'typed_letter' },
+      { id: 'memories', title: 'Brighter Smiles Ahead', subtitle: 'Moments to remind you who you are', interactiveType: 'photo_slideshow' },
+      { id: 'gift', title: 'Cheer-Up Care Package', subtitle: 'Tap to unwrap a little peace', interactiveType: 'gift_box' },
+      { id: 'closing', title: 'Sending You Warmth', subtitle: 'Reply whenever you are ready', interactiveType: 'closing_reaction' }
+    ],
+    sampleWish: {
+      title: 'Sending You Warm Hugs on a Tough Day',
+      recipientName: 'Mohsin',
+      recipientNickname: 'Mo',
+      senderName: 'Someone Who Cares',
+      relationship: 'Best Friend',
+      tone: 'emotional',
+      personalMessage: "Hey, I know today felt heavy and everything seemed exhausting. It is completely okay to not be okay right now. Take a deep breath, curl up with something warm, and remember that bad days do not make a bad life. You are resilient, deeply valued, and never alone. I am always in your corner through every storm. Tomorrow is a brand new page! 🌧️➡️🌤️💙",
+      giftRevealedItem: {
+        type: 'quote',
+        title: 'Storms Never Last Forever',
+        message: 'No storm lasts forever. The clouds will part, and your light will shine even brighter than before.',
       }
     }
   }

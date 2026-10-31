@@ -4,69 +4,26 @@
       <stop offset="0%" stop-color="#FFAEAE" />
       <stop offset="100%" stop-color="#FF9696" />
     </radialGradient>
+    <filter id="subtleShadowSquare" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-opacity="0.15" />
+    </filter>
   </defs>
 
-  <g transform="translate(100, 96) scale(0.92) translate(-100, -105)">
-    <!-- 16-petal scalloped badge -->
+  <!-- 16-Petal Scalloped Circular Badge: Equal 1:1 Length and Width -->
+  <g id="badge-rosette">
+    <!-- Outer scalloped path: width = 147.2, height = 147.2, perfectly 1:1 ratio centered at (100, 100) -->
     <path
-      d="M 100 8
-         C 107 8 114 13 118 19
-         C 125 18 132 21 137 26
-         C 142 31 145 38 144 45
-         C 150 49 155 56 155 63
-         C 159 69 161 77 159 84
-         C 163 90 164 98 162 105
-         C 164 112 163 120 159 126
-         C 161 133 159 141 155 147
-         C 155 154 150 161 144 165
-         C 145 172 142 179 137 184
-         C 132 189 125 192 118 191
-         C 114 197 107 202 100 202
-         C 93 202 86 197 82 191
-         C 75 192 68 189 63 184
-         C 58 179 55 172 56 165
-         C 50 161 45 154 45 147
-         C 41 141 39 133 41 126
-         C 37 120 36 112 38 105
-         C 36 98 37 90 41 84
-         C 39 77 41 69 45 63
-         C 45 56 50 49 56 45
-         C 55 38 58 31 63 26
-         C 68 21 75 18 82 19
-         C 86 13 93 8 100 8 Z"
+      d="M 85.4 26.4 A 17.5 17.5 0 0 1 114.6 26.4 A 17.5 17.5 0 0 1 141.7 37.6 A 17.5 17.5 0 0 1 162.4 58.3 A 17.5 17.5 0 0 1 173.6 85.4 A 17.5 17.5 0 0 1 173.6 114.6 A 17.5 17.5 0 0 1 162.4 141.7 A 17.5 17.5 0 0 1 141.7 162.4 A 17.5 17.5 0 0 1 114.6 173.6 A 17.5 17.5 0 0 1 85.4 173.6 A 17.5 17.5 0 0 1 58.3 162.4 A 17.5 17.5 0 0 1 37.6 141.7 A 17.5 17.5 0 0 1 26.4 114.6 A 17.5 17.5 0 0 1 26.4 85.4 A 17.5 17.5 0 0 1 37.6 58.3 A 17.5 17.5 0 0 1 58.3 37.6 A 17.5 17.5 0 0 1 85.4 26.4 Z"
       fill="url(#pinkGradSquare)"
       stroke="#1E1624"
-      stroke-width="3.6"
+      stroke-width="3.5"
       stroke-linejoin="round"
+      filter="url(#subtleShadowSquare)"
     />
 
-    <!-- Inner concentric scalloped ring border -->
+    <!-- Inner concentric scalloped ring border: perfectly 1:1 centered at (100, 100) -->
     <path
-      d="M 100 16
-         C 106 16 112 20 115 25
-         C 121 24 127 27 131 31
-         C 135 35 137 41 136 47
-         C 141 50 145 56 145 62
-         C 148 67 150 74 148 80
-         C 151 85 152 92 150 98
-         C 152 104 151 111 148 116
-         C 150 122 148 129 145 134
-         C 145 140 141 146 136 149
-         C 137 155 135 161 131 165
-         C 127 169 121 172 115 171
-         C 112 176 106 180 100 180
-         C 94 180 88 176 85 171
-         C 79 172 73 169 69 165
-         C 65 161 63 155 64 149
-         C 59 146 55 140 55 134
-         C 52 129 50 122 52 116
-         C 49 111 48 104 50 98
-         C 48 92 49 85 52 80
-         C 50 74 52 67 55 62
-         C 55 56 59 50 64 47
-         C 63 41 65 35 69 31
-         C 73 27 79 24 85 25
-         C 88 20 94 16 100 16 Z"
+      d="M 87.3 36.2 A 15 15 0 0 1 112.7 36.2 A 15 15 0 0 1 136.1 46.0 A 15 15 0 0 1 154.0 63.9 A 15 15 0 0 1 163.8 87.3 A 15 15 0 0 1 163.8 112.7 A 15 15 0 0 1 154.0 136.1 A 15 15 0 0 1 136.1 154.0 A 15 15 0 0 1 112.7 163.8 A 15 15 0 0 1 87.3 163.8 A 15 15 0 0 1 63.9 154.0 A 15 15 0 0 1 46.0 136.1 A 15 15 0 0 1 36.2 112.7 A 15 15 0 0 1 36.2 87.3 A 15 15 0 0 1 46.0 63.9 A 15 15 0 0 1 63.9 46.0 A 15 15 0 0 1 87.3 36.2 Z"
       fill="none"
       stroke="#1E1624"
       stroke-width="1.8"
@@ -75,7 +32,8 @@
     />
 
     <!-- Central Detailed Firework Burst -->
-    <g stroke="#1E1624" stroke-width="1.15" stroke-linecap="round" transform="translate(100, 72)">
+    <g stroke="#1E1624" stroke-width="1.15" stroke-linecap="round" opacity="0.95" transform="translate(100, 78)">
+      <!-- Main radial rays -->
       <line x1="0" y1="0" x2="0" y2="-22" />
       <line x1="0" y1="0" x2="6" y2="-20" />
       <line x1="0" y1="0" x2="13" y2="-17" />
@@ -94,6 +52,7 @@
       <line x1="0" y1="0" x2="-13" y2="-17" />
       <line x1="0" y1="0" x2="-6" y2="-21" />
 
+      <!-- Secondary fine sparkles -->
       <line x1="0" y1="0" x2="3" y2="-14" stroke-width="0.8" />
       <line x1="0" y1="0" x2="10" y2="-12" stroke-width="0.8" />
       <line x1="0" y1="0" x2="15" y2="-5" stroke-width="0.8" />
@@ -104,6 +63,7 @@
       <line x1="0" y1="0" x2="-14" y2="-6" stroke-width="0.8" />
       <line x1="0" y1="0" x2="-8" y2="-13" stroke-width="0.8" />
 
+      <!-- Stippled tips / star dust -->
       <circle cx="0" cy="-24" r="0.85" fill="#1E1624" />
       <circle cx="15" cy="-19" r="0.75" fill="#1E1624" />
       <circle cx="24" cy="-5" r="0.75" fill="#1E1624" />
@@ -115,10 +75,10 @@
       <circle cx="-15" cy="-19" r="0.85" fill="#1E1624" />
     </g>
 
-    <!-- Typography -->
+    <!-- Cursive "Ai Wishify" Typography -->
     <text
       x="100"
-      y="124"
+      y="132"
       text-anchor="middle"
       font-family="'Dancing Script', 'Caveat', cursive"
       font-size="24"
@@ -129,7 +89,4 @@
       Ai Wishify
     </text>
   </g>
-
-  <!-- Bottom Dot -->
-  <circle cx="100" cy="191" r="3.5" fill="#FFAEAE" stroke="#1E1624" stroke-width="1" />
 </svg>

@@ -232,6 +232,53 @@ class AudioSynthesizer {
     });
   }
 
+  // Sound Effect: Secret Code Dialer Tick
+  public playDialTick() {
+    this.initContext();
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    // Crisp tactile click
+    this.playTone(1800, now, 0.025, 'triangle', 0.15);
+    this.playTone(850, now + 0.01, 0.02, 'sine', 0.1);
+  }
+
+  // Sound Effect: Secret Code Success / Access Granted
+  public playAccessGranted() {
+    this.initContext();
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    const notes = [523.25, 659.25, 783.99, 1046.5]; // C5, E5, G5, C6
+    notes.forEach((freq, idx) => {
+      this.playTone(freq, now + idx * 0.08, 0.35, 'triangle', 0.2);
+    });
+  }
+
+  // Sound Effect: Secret Code Incorrect / Denied
+  public playAccessDenied() {
+    this.initContext();
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    this.playTone(220, now, 0.15, 'sawtooth', 0.18);
+    this.playTone(196, now + 0.12, 0.25, 'sawtooth', 0.2);
+  }
+
+  // Sound Effect: Grand Curtains Opening Fanfare & Whoosh
+  public playCurtainsOpening() {
+    this.initContext();
+    if (!this.ctx || this.isMuted) return;
+    const now = this.ctx.currentTime;
+    // Dramatic brass/string swell
+    const chord = [392.0, 523.25, 659.25, 783.99]; // G4, C5, E5, G5
+    chord.forEach((freq) => {
+      this.playTone(freq, now, 0.9, 'triangle', 0.2);
+    });
+    // Rising shimmer
+    const shimmer = [880.0, 1046.5, 1318.5, 1567.98];
+    shimmer.forEach((freq, idx) => {
+      this.playTone(freq, now + 0.3 + idx * 0.1, 0.6, 'sine', 0.15);
+    });
+  }
+
   // Dispatch generic music track
   public playTrack(trackName: string) {
     switch (trackName) {

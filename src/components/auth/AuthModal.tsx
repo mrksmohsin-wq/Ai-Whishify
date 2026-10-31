@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Sparkles, X, Check, Shield } from 'lucide-react';
+import { Mail, Lock, Sparkles, X, Check, Shield, AlertCircle } from 'lucide-react';
+import { signInWithGoogle, db } from '../../firebase';
+import { doc, setDoc } from 'firebase/firestore';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAuthSuccess: (user: { name: string; email: string; avatar?: string }) => void;
+  onAuthSuccess: (user: { uid: string; name: string; email: string; avatar?: string }) => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -14,49 +16,92 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [isEmailSent, setIsEmailSent] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleGoogleSignIn = () => {
+  const handleGoogleSignIn = async () => {
     setLoading(true);
-    setTimeout(() => {
-      onAuthSuccess({
-        name: 'Sarah Jenkins',
-        email: 'sarah.jenkins@gmail.com',
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
-      });
-      setLoading(false);
+    setErrorMessage(null);
+    try {
+      const firebaseUser = await signInWithGoogle();
+      const userData = {
+        uid: firebaseUser.uid,
+        name: firebaseUser.displayName || firebaseUser.email?.split('@')[0] || 'User',
+        email: firebaseUser.email || '',
+        avatar: firebaseUser.photoURL || undefined,
+      };
+
+      // Save real user account to Firestore
+      try {
+        await setDoc(
+          doc(db, 'users', firebaseUser.uid),
+          {
+            uid: firebaseUser.uid,
+            displayName: userData.name,
+            email: userData.email,
+            photoURL: userData.avatar || '',
+            lastLoginAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.warn('Could not update user profile in Firestore:', err);
+      }
+
+      onAuthSuccess(userData);
       onClose();
-    }, 600);
+    } catch (err: any) {
+      console.error('Google Sign-In failed:', err);
+      if (err.code === 'auth/popup-closed-by-user') {
+        setErrorMessage('Sign-in cancelled. Please select your Google account.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setErrorMessage('Pop-up was blocked by browser. Please allow popups for Google login.');
+      } else {
+        setErrorMessage(err.message || 'Failed to authenticate with Google.');
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleEmailSubmit = (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) return;
 
     setLoading(true);
-    setTimeout(() => {
-      onAuthSuccess({
+    setErrorMessage(null);
+    try {
+      const pseudoUid = 'user-' + btoa(email.toLowerCase()).replace(/[^a-zA-Z0-9]/g, '').slice(0, 16);
+      const userData = {
+        uid: pseudoUid,
         name: email.split('@')[0],
         email: email,
-      });
-      setIsEmailSent(true);
-      setLoading(false);
-      setTimeout(() => {
-        onClose();
-      }, 1200);
-    }, 600);
-  };
+      };
 
-  const handleDemoSignIn = () => {
-    onAuthSuccess({
-      name: 'Alex Rivera (Demo)',
-      email: 'alex.rivera@example.com',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
-    });
-    onClose();
+      try {
+        await setDoc(
+          doc(db, 'users', pseudoUid),
+          {
+            uid: pseudoUid,
+            displayName: userData.name,
+            email: userData.email,
+            lastLoginAt: new Date().toISOString(),
+          },
+          { merge: true }
+        );
+      } catch (err) {
+        console.warn('Could not update user profile in Firestore:', err);
+      }
+
+      onAuthSuccess(userData);
+      onClose();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to sign in.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,20 +118,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-rose-500 to-pink-500 text-white flex items-center justify-center mx-auto mb-3 shadow-md">
             <Sparkles className="w-6 h-6 text-yellow-200" />
           </div>
-          <h2 className="text-2xl font-black text-slate-900">Welcome to AI Wishify</h2>
+          <h2 className="text-2xl font-black text-slate-900">Sign in to AI Wishify</h2>
           <p className="text-xs text-slate-500 mt-1">
-            Sign in to save your greetings, schedule deliveries, and track reactions
+            Create real greetings, save your personal projects, and track live recipient views in your dashboard
           </p>
         </div>
 
-        {/* 1-Click Google Sign In */}
+        {errorMessage && (
+          <div className="mb-4 p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-xs flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
+
+        {/* Real 1-Click Google Sign In */}
         <button
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full py-3 px-4 rounded-2xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center justify-center gap-2.5 transition-all shadow-xs active:scale-98"
+          className="w-full py-3.5 px-4 rounded-2xl border-2 border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs flex items-center justify-center gap-3 transition-all shadow-sm active:scale-98 disabled:opacity-50"
         >
-          {/* Google SVG Icon */}
-          <svg className="w-4 h-4" viewBox="0 0 24 24">
+          {/* Official Google SVG Icon */}
+          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
             <path
               fill="#4285F4"
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -104,7 +156,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
             />
           </svg>
-          <span>Continue with Google</span>
+          <span>{loading ? 'Authenticating with Google...' : 'Sign in with Google'}</span>
         </button>
 
         <div className="relative my-5 text-center">
@@ -155,20 +207,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold text-xs shadow-md transition-all active:scale-98"
+            className="w-full py-3 rounded-2xl bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-bold text-xs shadow-md transition-all active:scale-98 disabled:opacity-50"
           >
-            {loading ? 'Signing In...' : isEmailSent ? 'Success! Redirecting...' : 'Sign In / Register'}
+            {loading ? 'Processing...' : 'Sign In with Email'}
           </button>
         </form>
 
-        {/* Quick Demo Switcher */}
-        <div className="mt-4 pt-4 border-t border-slate-100 text-center">
-          <button
-            onClick={handleDemoSignIn}
-            className="text-xs text-rose-600 font-semibold hover:underline"
-          >
-            Instant Test: Sign in as Demo User
-          </button>
+        <div className="mt-4 text-center">
+          <p className="text-[11px] text-slate-400">
+            By signing in, your personalized wishes and custom templates are securely saved to your private creator account.
+          </p>
         </div>
       </div>
     </div>

@@ -9,6 +9,13 @@ import {
   FileText,
   Clock,
   Lock,
+  Unlock,
+  KeyRound,
+  HelpCircle,
+  RefreshCw,
+  EyeOff,
+  ShieldCheck,
+  X,
   Image as ImageIcon,
   Gift,
   Upload,
@@ -21,6 +28,7 @@ import {
 } from 'lucide-react';
 import { EventType, ToneType, WishData, PhotoMemory, GiftRevealedItem } from '../../types/wish';
 import { EVENT_TEMPLATES, ALL_EVENT_KEYS } from '../../config/eventsConfig';
+import { SecretCodeDialer } from '../player/SecretCodeDialer';
 
 interface WishCreationWizardProps {
   initialEvent?: EventType;
@@ -113,6 +121,33 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
   const [isScheduled, setIsScheduled] = useState(initialWish?.isScheduled || false);
   const [scheduledDate, setScheduledDate] = useState(initialWish?.scheduledDate || '');
   const [password, setPassword] = useState(initialWish?.password || '');
+  const [hasSecretCode, setHasSecretCode] = useState(
+    initialWish?.hasSecretCode ?? Boolean(initialWish?.secretCode || initialWish?.password)
+  );
+  const [secretCode, setSecretCode] = useState(
+    initialWish?.secretCode || initialWish?.password || '1234'
+  );
+  const [secretCodeHint, setSecretCodeHint] = useState(
+    initialWish?.secretCodeHint || ''
+  );
+  const [showPasscodeText, setShowPasscodeText] = useState(false);
+  const [showDialerTestModal, setShowDialerTestModal] = useState(false);
+
+  const generateRandomPin = () => {
+    const randomPin = Math.floor(1000 + Math.random() * 9000).toString();
+    setSecretCode(randomPin);
+    setHasSecretCode(true);
+  };
+
+  // Theatrical Curtains Customization
+  const [hasCurtains, setHasCurtains] = useState(initialWish?.hasCurtains !== false);
+  const [curtainColor, setCurtainColor] = useState<
+    'velvet_red' | 'midnight_blue' | 'royal_gold' | 'emerald_green' | 'romantic_rose' | 'deep_purple'
+  >(initialWish?.curtainColor || 'velvet_red');
+  const [curtainMessage, setCurtainMessage] = useState(
+    initialWish?.curtainMessage || `A Special Celebration for ${recipientName || 'Mohsin'}`
+  );
+
   const [isSaving, setIsSaving] = useState(false);
 
   // Construct current working wish object
@@ -140,7 +175,13 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
     duaMessage: eventType === 'eid_mubarak' ? duaMessage : undefined,
     photos,
     giftRevealedItem: giftItem,
-    password: password.trim() || undefined,
+    password: hasSecretCode ? (secretCode.trim() || '1234') : undefined,
+    hasSecretCode,
+    secretCode: hasSecretCode ? (secretCode.trim() || '1234') : undefined,
+    secretCodeHint: hasSecretCode && secretCodeHint.trim() ? secretCodeHint.trim() : undefined,
+    hasCurtains,
+    curtainColor,
+    curtainMessage: curtainMessage.trim() || `A Special Celebration for ${recipientName || 'Mohsin'}`,
     isScheduled,
     scheduledDate: isScheduled ? scheduledDate : undefined,
     status: publish ? 'published' : 'draft',
@@ -595,6 +636,7 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
                 <option value="Sibling">Sibling (Brother / Sister)</option>
                 <option value="Child">Child (Son / Daughter)</option>
                 <option value="Colleague">Colleague / Coworker</option>
+                <option value="Dushman">Dushman</option>
                 <option value="Loved One">Loved One</option>
               </select>
             </div>
@@ -646,6 +688,95 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
                 ))}
               </div>
             </div>
+          </div>
+
+          {/* SENDER PASSCODE & HINT CONFIGURATION (Step 2 Quick Access) */}
+          <div className="mt-4 p-4 rounded-2xl border border-purple-200/80 bg-gradient-to-br from-purple-50/60 to-slate-50">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-sm shadow-xs">
+                  <KeyRound className="w-4 h-4" />
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
+                    Lock with Secret Passcode & Clue
+                    {hasSecretCode && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-700">
+                        Active ({secretCode})
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-[11px] text-slate-500 block">
+                    Recipient enters this code on the rotary dialer to open the celebration curtains
+                  </span>
+                </div>
+              </div>
+
+              <label className="relative inline-flex items-center cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={hasSecretCode}
+                  onChange={(e) => setHasSecretCode(e.target.checked)}
+                  className="sr-only peer"
+                />
+                <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+              </label>
+            </div>
+
+            {hasSecretCode && (
+              <div className="mt-3 pt-3 border-t border-purple-200/60 grid grid-cols-1 sm:grid-cols-2 gap-3 animate-in fade-in">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1">
+                      <Lock className="w-3 h-3 text-purple-600" />
+                      <span>Secret Passcode *</span>
+                    </label>
+                    <button
+                      type="button"
+                      onClick={generateRandomPin}
+                      className="text-[10px] text-purple-600 hover:text-purple-700 font-semibold flex items-center gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" />
+                      <span>Random PIN</span>
+                    </button>
+                  </div>
+                  <div className="relative">
+                    <input
+                      type={showPasscodeText ? 'text' : 'password'}
+                      value={secretCode}
+                      onChange={(e) => setSecretCode(e.target.value)}
+                      placeholder="e.g. 1234 or 1024"
+                      className="w-full px-3 py-2 pr-9 text-xs font-mono font-bold tracking-wider border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-purple-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPasscodeText(!showPasscodeText)}
+                      className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      title={showPasscodeText ? 'Hide Passcode' : 'Show Passcode'}
+                    >
+                      {showPasscodeText ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-bold text-slate-700 flex items-center gap-1 mb-1">
+                    <HelpCircle className="w-3 h-3 text-purple-600" />
+                    <span>Passcode Hint / Clue (Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={secretCodeHint}
+                    onChange={(e) => setSecretCodeHint(e.target.value)}
+                    placeholder={`e.g. ${recipientName ? `${recipientName}'s` : 'Recipient'} Birthday (DDMM)`}
+                    className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-purple-500"
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1 block">
+                    Shown when recipient taps 'Need a Hint?'
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
@@ -1027,6 +1158,23 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
                 <p className="text-xs text-slate-600">
                   From: {senderName} • Tone: {tone} • {photos.length} Photos
                 </p>
+                <div className="mt-1 flex items-center gap-2">
+                  <span
+                    className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                      hasSecretCode
+                        ? 'bg-purple-100 text-purple-700'
+                        : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {hasSecretCode ? <Lock className="w-3 h-3" /> : <Unlock className="w-3 h-3" />}
+                    <span>{hasSecretCode ? `Passcode: ${secretCode}` : 'No Passcode'}</span>
+                  </span>
+                  {hasSecretCode && secretCodeHint && (
+                    <span className="text-[11px] text-slate-500 truncate max-w-xs">
+                      • Clue: "{secretCodeHint}"
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1040,29 +1188,248 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
             </button>
           </div>
 
-          {/* Delivery & Security Settings */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* PIN Protection */}
+          {/* Opening Staging & Security Controls */}
+          <div className="space-y-4">
+            {/* Theatrical Curtains Opening Section */}
             <div className="p-4 bg-white rounded-2xl border border-slate-200">
-              <label className="block text-xs font-bold uppercase tracking-wider text-slate-700 mb-2 flex items-center gap-1.5">
-                <Lock className="w-3.5 h-3.5 text-slate-500" /> Optional PIN Protection
-              </label>
-              <input
-                type="text"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="e.g. 1234 (Leave blank for public link)"
-                className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl"
-              />
-              <span className="text-[11px] text-slate-500 mt-1 block">
-                Recipient must enter this code to unlock the greeting
-              </span>
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm">
+                    🎭
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-800 block">
+                      Theatrical Curtains Opening Animation
+                    </span>
+                    <span className="text-[11px] text-slate-500 block">
+                      Grand velvet curtains part with fanfare and whoosh sound
+                    </span>
+                  </div>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasCurtains}
+                    onChange={(e) => setHasCurtains(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
+              {hasCurtains && (
+                <div className="mt-3 pt-3 border-t border-slate-100 space-y-3 animate-in fade-in">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1.5">
+                      Curtain Velvet Color:
+                    </label>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {[
+                        { key: 'velvet_red', name: 'Royal Velvet Red', bg: 'bg-red-700' },
+                        { key: 'midnight_blue', name: 'Midnight Sapphire', bg: 'bg-blue-900' },
+                        { key: 'royal_gold', name: 'Imperial Gold', bg: 'bg-amber-600' },
+                        { key: 'emerald_green', name: 'Regal Emerald', bg: 'bg-emerald-800' },
+                        { key: 'romantic_rose', name: 'Romantic Rose', bg: 'bg-rose-700' },
+                        { key: 'deep_purple', name: 'Majestic Amethyst', bg: 'bg-purple-900' },
+                      ].map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          onClick={() => setCurtainColor(item.key as any)}
+                          className={`p-2 rounded-xl text-[11px] font-bold text-left border flex items-center gap-2 transition-all ${
+                            curtainColor === item.key
+                              ? 'border-amber-500 bg-amber-50 text-amber-900 shadow-xs'
+                              : 'border-slate-200 hover:border-slate-300 text-slate-700'
+                          }`}
+                        >
+                          <span className={`w-3.5 h-3.5 rounded-full ${item.bg} shrink-0 shadow-xs`} />
+                          <span className="truncate">{item.name}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">
+                      Curtain Banner Title:
+                    </label>
+                    <input
+                      type="text"
+                      value={curtainMessage}
+                      onChange={(e) => setCurtainMessage(e.target.value)}
+                      placeholder="e.g. A Special Surprise for Mohsin"
+                      className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Secret Code Dialer Section */}
+            <div className="p-5 bg-white rounded-2xl border border-purple-200/80 shadow-xs">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center font-bold text-base shadow-sm">
+                    <KeyRound className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-bold text-slate-900 block">
+                        Secret Passcode Dialer & Clue
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                          hasSecretCode ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-500'
+                        }`}
+                      >
+                        {hasSecretCode ? `Enabled (Code: ${secretCode})` : 'Disabled'}
+                      </span>
+                    </div>
+                    <span className="text-xs text-slate-500 block">
+                      Recipient enters this personal passcode on a rotary dialer before curtains open
+                    </span>
+                  </div>
+                </div>
+
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={hasSecretCode}
+                    onChange={(e) => setHasSecretCode(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-10 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
+              </div>
+
+              {hasSecretCode && (
+                <div className="mt-4 pt-4 border-t border-purple-100 space-y-4 animate-in fade-in">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Passcode input */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <Lock className="w-3.5 h-3.5 text-purple-600" />
+                          <span>Secret Passcode *</span>
+                        </label>
+                        <button
+                          type="button"
+                          onClick={generateRandomPin}
+                          className="text-[11px] text-purple-600 hover:text-purple-700 font-bold flex items-center gap-1"
+                        >
+                          <RefreshCw className="w-3 h-3" />
+                          <span>Generate 4-Digit PIN</span>
+                        </button>
+                      </div>
+
+                      <div className="relative">
+                        <input
+                          type={showPasscodeText ? 'text' : 'password'}
+                          value={secretCode}
+                          onChange={(e) => setSecretCode(e.target.value)}
+                          placeholder="e.g. 1234 or 1024"
+                          className="w-full px-3.5 py-2.5 pr-10 text-sm font-mono font-bold tracking-widest border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-purple-500"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPasscodeText(!showPasscodeText)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                          title={showPasscodeText ? 'Hide passcode' : 'Show passcode'}
+                        >
+                          {showPasscodeText ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                        </button>
+                      </div>
+
+                      {/* Quick Presets */}
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] text-slate-400 font-semibold">Quick Presets:</span>
+                        {['1234', '2026', '7777', '1024'].map((preset) => (
+                          <button
+                            key={preset}
+                            type="button"
+                            onClick={() => setSecretCode(preset)}
+                            className={`px-2 py-0.5 rounded-lg text-[10px] font-mono font-bold border transition-all ${
+                              secretCode === preset
+                                ? 'bg-purple-100 text-purple-700 border-purple-300 shadow-xs'
+                                : 'bg-slate-50 text-slate-600 border-slate-200 hover:bg-slate-100'
+                            }`}
+                          >
+                            {preset}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Hint / Clue input */}
+                    <div>
+                      <div className="flex items-center justify-between mb-1.5">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <HelpCircle className="w-3.5 h-3.5 text-purple-600" />
+                          <span>Passcode Hint / Clue (Optional)</span>
+                        </label>
+                      </div>
+
+                      <input
+                        type="text"
+                        value={secretCodeHint}
+                        onChange={(e) => setSecretCodeHint(e.target.value)}
+                        placeholder={`e.g. ${recipientName ? `${recipientName}'s` : 'Recipient'} Birthday (DDMM)`}
+                        className="w-full px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl bg-white focus:ring-2 focus:ring-purple-500"
+                      />
+
+                      {/* Quick Clue suggestions */}
+                      <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] text-slate-400 font-semibold">Suggested Clues:</span>
+                        {[
+                          `${recipientName ? `${recipientName}'s` : 'Special'} Birthday (DDMM)`,
+                          'The year our journey started',
+                          'Our secret nickname',
+                          'Special celebration date',
+                        ].map((hintText, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => setSecretCodeHint(hintText)}
+                            className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-slate-50 text-slate-600 border border-slate-200 hover:bg-purple-50 hover:text-purple-700 transition-colors"
+                          >
+                            {hintText}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Recipient Clue Preview & Test Action */}
+                  <div className="p-3 bg-purple-50/70 rounded-xl border border-purple-200/70 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <div className="text-xs">
+                      <span className="font-bold text-purple-900 flex items-center gap-1">
+                        <HelpCircle className="w-3.5 h-3.5 text-purple-600" />
+                        Recipient Clue Preview:
+                      </span>
+                      <span className="text-[11px] text-purple-700 mt-0.5 block italic">
+                        {secretCodeHint
+                          ? `"${secretCodeHint}"`
+                          : 'No hint set (recipient will guess with no clue)'}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setShowDialerTestModal(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-xs transition-colors shrink-0"
+                    >
+                      <KeyRound className="w-3.5 h-3.5" />
+                      <span>Test Passcode on Dialer</span>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Scheduled Send */}
             <div className="p-4 bg-white rounded-2xl border border-slate-200">
               <div className="flex items-center justify-between mb-2">
-                <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-1.5">
+                <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
                   <Clock className="w-3.5 h-3.5 text-slate-500" /> Schedule Delivery
                 </label>
                 <input
@@ -1077,7 +1444,7 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
                   type="datetime-local"
                   value={scheduledDate}
                   onChange={(e) => setScheduledDate(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl"
+                  className="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl"
                 />
               ) : (
                 <span className="text-[11px] text-slate-500 block">
@@ -1124,6 +1491,43 @@ export const WishCreationWizard: React.FC<WishCreationWizardProps> = ({
           )}
         </div>
       </div>
+
+      {/* Interactive Passcode Dialer Tester Modal for Sender */}
+      {showDialerTestModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="relative w-full max-w-md">
+            <div className="bg-slate-900 text-white px-4 py-3 rounded-t-3xl border-t border-x border-slate-700 flex items-center justify-between shadow-xl">
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="font-bold text-xs text-amber-300 flex items-center gap-1.5">
+                  <KeyRound className="w-4 h-4" /> Passcode Test Mode
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowDialerTestModal(false)}
+                className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+                title="Close test"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <SecretCodeDialer
+              recipientName={recipientName || 'Recipient'}
+              senderName={senderName || 'You'}
+              secretCode={secretCode || '1234'}
+              hint={secretCodeHint}
+              isPreview={true}
+              onUnlocked={() => {
+                setTimeout(() => {
+                  setShowDialerTestModal(false);
+                }, 1000);
+              }}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

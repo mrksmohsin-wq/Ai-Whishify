@@ -14,7 +14,8 @@ export type EventType =
   | 'get_well_soon'
   | 'thank_you'
   | 'farewell'
-  | 'congratulations';
+  | 'congratulations'
+  | 'bad_sad_day';
 
 export type ToneType = 'emotional' | 'funny' | 'formal' | 'poetic' | 'playful';
 
@@ -42,6 +43,8 @@ export interface RecipientReaction {
 
 export interface WishData {
   id: string;
+  userId?: string;
+  userEmail?: string;
   eventType: EventType;
   title?: string;
   recipientName: string;
@@ -95,6 +98,16 @@ export interface WishData {
   createdAt: string;
   updatedAt?: string;
   isPreview?: boolean;
+
+  // Secret Code Dialer (Customizable & Personalisable)
+  hasSecretCode?: boolean;
+  secretCode?: string; // e.g. "1234"
+  secretCodeHint?: string; // e.g. "Mohsin's Birthday"
+
+  // Curtains Opening Animation (Customizable)
+  hasCurtains?: boolean;
+  curtainColor?: 'velvet_red' | 'midnight_blue' | 'royal_gold' | 'emerald_green' | 'romantic_rose' | 'deep_purple';
+  curtainMessage?: string;
 }
 
 export interface EventStepConfig {
@@ -115,6 +128,7 @@ export interface EventStepConfig {
     | 'grad_cap_throw'
     | 'baby_lullaby'
     | 'teacup_steam'
+    | 'bad_day_comfort'
     | 'champagne_pop'
     | 'typed_letter'
     | 'photo_slideshow'
@@ -127,7 +141,7 @@ export interface EventTemplateConfig {
   id: EventType;
   name: string;
   tagline: string;
-  category: 'Celebration' | 'Gratitude' | 'Love' | 'Milestone' | 'Seasonal';
+  category: 'Celebration' | 'Gratitude' | 'Love' | 'Milestone' | 'Seasonal' | 'Comfort & Care';
   icon: string;
   colorScheme: {
     primary: string;

@@ -14,6 +14,9 @@ import {
   X,
   ExternalLink,
   Sparkles,
+  Lock,
+  KeyRound,
+  HelpCircle,
 } from 'lucide-react';
 import { WishData } from '../../types/wish';
 
@@ -30,8 +33,13 @@ export const ShareWishModal: React.FC<ShareWishModalProps> = ({
 }) => {
   const [copiedLink, setCopiedLink] = useState(false);
   const [copiedPreviewLink, setCopiedPreviewLink] = useState(false);
+  const [copiedPasscode, setCopiedPasscode] = useState(false);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [showQrExpanded, setShowQrExpanded] = useState(false);
+
+  const effectiveCode = (wish.secretCode || wish.password || '').trim();
+  const hasPasscode = Boolean(wish.hasSecretCode || effectiveCode);
+  const [includePasscode, setIncludePasscode] = useState(hasPasscode);
 
   const origin = window.location.origin;
   const shareableUrl = `${origin}/#w=${wish.id}`;
@@ -61,21 +69,29 @@ export const ShareWishModal: React.FC<ShareWishModalProps> = ({
     }
   };
 
-  const shareText = `✨ I created a special animated greeting for you on AI Wishify! Open your experience here: ${shareableUrl}`;
-  const encodedText = encodeURIComponent(shareText);
+  const getShareText = () => {
+    let text = `✨ I created a special animated greeting for you on AI Wishify! Open your celebration here: ${shareableUrl}`;
+    if (hasPasscode && includePasscode && effectiveCode) {
+      text += `\n🔐 Passcode to unlock: ${effectiveCode}`;
+      if (wish.secretCodeHint) {
+        text += `\n💡 Clue / Hint: ${wish.secretCodeHint}`;
+      }
+    }
+    return text;
+  };
 
   const shareWhatsApp = () => {
-    window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(getShareText())}`, '_blank');
   };
 
   const shareEmail = () => {
     window.location.href = `mailto:?subject=${encodeURIComponent(
       `Special Greeting for ${wish.recipientName} ✨`
-    )}&body=${encodedText}`;
+    )}&body=${encodeURIComponent(getShareText())}`;
   };
 
   const shareSMS = () => {
-    window.location.href = `sms:?body=${encodedText}`;
+    window.location.href = `sms:?body=${encodeURIComponent(getShareText())}`;
   };
 
   return (
@@ -124,6 +140,64 @@ export const ShareWishModal: React.FC<ShareWishModalProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Secret Passcode Details for Sender */}
+          {hasPasscode && (
+            <div className="p-4 bg-purple-50/80 rounded-2xl border border-purple-200 shadow-xs">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+                    <KeyRound className="w-3.5 h-3.5" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold text-slate-900 block">
+                      Secret Passcode Protected
+                    </span>
+                    <span className="text-[11px] text-slate-500 block">
+                      Recipient must dial this code to unlock the celebration
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard.writeText(effectiveCode);
+                    setCopiedPasscode(true);
+                    setTimeout(() => setCopiedPasscode(false), 2000);
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-white border border-purple-200 text-purple-700 hover:bg-purple-100/50 text-[11px] font-bold flex items-center gap-1 shadow-xs transition-colors"
+                >
+                  {copiedPasscode ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedPasscode ? 'Copied' : 'Copy Passcode'}</span>
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 text-xs font-mono font-bold text-purple-950 bg-white p-2 rounded-xl border border-purple-200/80">
+                <span className="text-slate-500 font-sans font-medium text-[11px]">Passcode:</span>
+                <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-800 text-sm tracking-widest font-black">
+                  {effectiveCode}
+                </span>
+                {wish.secretCodeHint && (
+                  <span className="font-sans font-normal text-slate-600 text-xs truncate ml-1">
+                    • Clue: <span className="italic">"{wish.secretCodeHint}"</span>
+                  </span>
+                )}
+              </div>
+
+              <label className="mt-2.5 flex items-center gap-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={includePasscode}
+                  onChange={(e) => setIncludePasscode(e.target.checked)}
+                  className="rounded text-purple-600 focus:ring-purple-500"
+                />
+                <span className="text-[11px] font-medium text-slate-700">
+                  Include passcode and clue in share messages (WhatsApp, SMS, Email)
+                </span>
+              </label>
+            </div>
+          )}
 
           {/* Quick Instant Share Channels */}
           <div>

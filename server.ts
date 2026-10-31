@@ -12,10 +12,26 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+
+// In AI Studio and Cloud Run environments, port 8080 is reserved for nginx.
+// The Node applet dev server must listen on port 3000.
+function resolvePort(): number {
+  const portArgIndex = process.argv.indexOf('--port');
+  if (portArgIndex !== -1 && process.argv[portArgIndex + 1]) {
+    const parsed = parseInt(process.argv[portArgIndex + 1], 10);
+    if (!isNaN(parsed) && parsed !== 8080) return parsed;
+  }
+  if (process.env.APP_PORT && process.env.APP_PORT !== '8080') {
+    return parseInt(process.env.APP_PORT, 10);
+  }
+  return 3000;
+}
+
+const PORT = resolvePort();
 
 app.use(express.json({ limit: '20mb' }));
 app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Initialize Gemini SDK with telemetry header
 const ai = process.env.GEMINI_API_KEY
@@ -443,7 +459,15 @@ We celebrate your wonderful soul on this special day! ✨`;
       return `Happy Anniversary, ${recipientName}! Every chapter of this journey together has been sweeter than the last. Looking back at all the laughs, dreams, and memories we've shared, I know with certainty that loving you is the best choice I've ever made. Here's to forever! 🥂💍`;
     case 'eid_mubarak':
       return `Eid Mubarak, ${recipientName}! Taqabbal Allahu minna wa minkum. May the blessings of this holy celebration shower your home with tranquility, joy, health, and prosperity. Wishing you and your loved ones an unforgettable Eid! 🌙✨`;
+    case 'bad_sad_day':
+      if (relationship === 'Dushman') {
+        return `Look ${recipientName}, even though we act like arch-enemies and trade banter, today is not the day for rivalry. Take a breath, shake off the gloom, and get back on your feet—because who else am I going to compete with? Wishing you strength and better days ahead! 🌧️➡️🌤️`;
+      }
+      return `Dearest ${recipientName}, I know today felt heavy and everything seemed exhausting. It is completely okay to not be okay right now. Take a deep breath, curl up with something warm, and remember that bad days do not make a bad life. You are resilient, deeply valued, and never alone. Tomorrow is a brand new page! 🌧️➡️🌤️💙`;
     default:
+      if (relationship === 'Dushman') {
+        return `To my favorite rival, ${recipientName}! Even though we are officially in "Dushman" mode, I have to take a ceasefire today to acknowledge you. May you find happiness, stay sharp, and keep the game exciting! From your worthy nemesis, ${senderName || 'Your Dushman'}.`;
+      }
       return `Dearest ${recipientName}, sending you my warmest and most heartfelt wishes on this special occasion! You deserve all the happiness, success, and beauty that life has to offer. Thank you for being such an extraordinary light! With all my love, ${senderName || 'Your loved one'}.`;
   }
 }

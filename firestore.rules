@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Default Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow write: if isOwner(userId);
+    }
+
+    // Wishes (User projects / templates)
+    match /wishes/{wishId} {
+      // Allow single wish lookup so recipients can open the greeting link
+      allow get: if true;
+
+      // Allow list only for the creator querying their own projects
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+
+      // Creator can create their own wish
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+
+      // Creator can update their wish, OR recipient can increment viewsCount and append reactions
+      allow update: if (
+        (isSignedIn() && resource.data.userId == request.auth.uid) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewsCount', 'reactions', 'lastViewedAt']))
+      );
+
+      // Creator can delete their wish
+      allow delete: if isSignedIn() && resource.data.userId == request.auth.uid;
+    }
+  }
+}

@@ -11,9 +11,10 @@ import {
   RotateCcw,
 } from 'lucide-react';
 import { AiWishifyLogo } from '../common/AiWishifyLogo';
-import { WishData } from '../../types/wish';
+import { WishData, RecipientReaction } from '../../types/wish';
 import { EVENT_TEMPLATES } from '../../config/eventsConfig';
 import { sound } from '../../utils/audioSynthesis';
+import { recordWishView, addWishReaction } from '../../services/wishService';
 
 // Activities
 import { CakeCandlesActivity } from '../activities/CakeCandlesActivity';
@@ -27,7 +28,9 @@ import { BloomingFlowersActivity, LoveMeterActivity } from '../activities/Mother
 import { HeroBadgeActivity, LessonsDadTaughtActivity } from '../activities/FathersDayActivities';
 import { CoupleHeartsActivity } from '../activities/AnniversaryActivities';
 import { EidCrescentActivity, EidiRevealActivity } from '../activities/EidActivities';
-import { GradCapActivity, ChampagnePopActivity, TeacupSteamActivity } from '../activities/MilestoneActivities';
+import { GradCapActivity, ChampagnePopActivity, TeacupSteamActivity, BadDayComfortActivity } from '../activities/MilestoneActivities';
+import { SecretCodeDialer } from './SecretCodeDialer';
+import { TheatricalCurtains, CurtainColorTheme } from './TheatricalCurtains';
 
 interface WishSequencePlayerProps {
   wish: WishData;
@@ -46,14 +49,31 @@ export const WishSequencePlayer: React.FC<WishSequencePlayerProps> = ({
   const [isMuted, setIsMuted] = useState(sound.getMuted());
   const [isFullscreen, setIsFullscreen] = useState(false);
 
+  // Secret Code & Curtains Opening State
+  const effectiveSecretCode = (wish.secretCode || wish.password || '').trim();
+  const requiresSecretCode = Boolean(wish.hasSecretCode || effectiveSecretCode.length > 0);
+  const [isCodeUnlocked, setIsCodeUnlocked] = useState(!requiresSecretCode);
+
+  const curtainsEnabled = wish.hasCurtains !== false;
+  const [curtainsOpened, setCurtainsOpened] = useState(!curtainsEnabled);
+  const [curtainColor, setCurtainColor] = useState<CurtainColorTheme>(wish.curtainColor || 'velvet_red');
+  const [curtainMessage, setCurtainMessage] = useState<string>(
+    wish.curtainMessage || `A Special Celebration for ${wish.recipientName}`
+  );
+  const [autoOpenCurtains, setAutoOpenCurtains] = useState(false);
+
   const template = EVENT_TEMPLATES[wish.eventType] || EVENT_TEMPLATES.birthday;
   const steps = template.steps;
   const currentStep = steps[currentStepIndex] || steps[0];
 
   const customAudioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  // Start background music or custom uploaded audio when player mounts
+  // Start background music or custom uploaded audio after curtains open
   useEffect(() => {
+    if (!curtainsOpened && curtainsEnabled) {
+      return;
+    }
+
     if (wish.customAudioUrl) {
       const audio = new Audio(wish.customAudioUrl);
       audio.loop = true;
@@ -67,9 +87,9 @@ export const WishSequencePlayer: React.FC<WishSequencePlayerProps> = ({
       sound.playTrack(wish.musicTrack || template.defaultMusic);
     }
 
-    // Track recipient view if not in preview mode
+    // Track real recipient view if not in creator preview mode
     if (!isPreview && wish.id) {
-      fetch(`/api/wishes/${wish.id}?trackView=true`).catch(() => {});
+      recordWishView(wish.id).catch((err) => console.warn('Could not record view:', err));
     }
 
     return () => {
@@ -80,7 +100,7 @@ export const WishSequencePlayer: React.FC<WishSequencePlayerProps> = ({
       }
       sound.stopMusic();
     };
-  }, [wish.musicTrack, wish.customAudioUrl, wish.id, isPreview]);
+  }, [curtainsOpened, curtainsEnabled, wish.musicTrack, wish.customAudioUrl, wish.id, isPreview]);
 
   const toggleSound = () => {
     const nextMuted = !isMuted;
@@ -204,6 +224,8 @@ export const WishSequencePlayer: React.FC<WishSequencePlayerProps> = ({
         return <ChampagnePopActivity recipientName={wish.recipientName} />;
       case 'teacup_steam':
         return <TeacupSteamActivity recipientName={wish.recipientName} />;
+      case 'bad_day_comfort':
+        return <BadDayComfortActivity recipientName={wish.recipientName} />;
       case 'typed_letter':
         return (
           <TypewriterLetterActivity
@@ -234,6 +256,15 @@ export const WishSequencePlayer: React.FC<WishSequencePlayerProps> = ({
             senderName={wish.senderName}
             recipientName={wish.recipientName}
             onCreateOwn={onCreateOwn}
+            onSendReaction={async (emoji, reply) => {
+              await addWishReaction(wish.id, {
+                id: 'rx-' + Math.random().toString(36).substring(2, 9) + Date.now().toString(36),
+                emoji,
+                reply,
+                name: wish.recipientName,
+                createdAt: new Date().toISOString(),
+              });
+            }}
           />
         );
       default:
@@ -382,6 +413,40 @@ export const WishSequencePlayer: React.FC<WishSequencePlayerProps> = ({
           </button>
         </div>
       </footer>
+
+      {/* 1. SECRET CODE DIALER (Opens curtains upon correct code) */}
+      {!isCodeUnlocked && (
+        <SecretCodeDialer
+          recipientName={wish.recipientName}
+          senderName={wish.senderName}
+          secretCode={effectiveSecretCode || '1234'}
+          hint={wish.secretCodeHint}
+          isPreview={isPreview}
+          onUnlocked={() => {
+            setIsCodeUnlocked(true);
+            if (curtainsEnabled) {
+              setAutoOpenCurtains(true);
+            }
+          }}
+        />
+      )}
+
+      {/* 2. CUSTOMIZABLE THEATRICAL CURTAINS OPENING ANIMATION */}
+      {curtainsEnabled && isCodeUnlocked && (
+        <TheatricalCurtains
+          recipientName={wish.recipientName}
+          senderName={wish.senderName}
+          initialColor={curtainColor}
+          customMessage={curtainMessage}
+          autoOpen={autoOpenCurtains}
+          isPreview={isPreview}
+          onOpened={() => {
+            setCurtainsOpened(true);
+          }}
+          onColorChange={(newColor) => setCurtainColor(newColor)}
+          onMessageChange={(newMsg) => setCurtainMessage(newMsg)}
+        />
+      )}
     </div>
   );
 };

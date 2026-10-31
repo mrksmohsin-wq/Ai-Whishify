@@ -17,36 +17,30 @@ export const Footer: React.FC<FooterProps> = ({ onSelectOccasion, onNavigate }) 
           {/* Brand info with Official Logo */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
-              <AiWishifyLogo size={44} />
+              <AiWishifyLogo size={40} />
               <div>
                 <span className="font-display font-black text-xl text-white block">Ai Wishify</span>
-                <span className="text-[10px] text-rose-400 font-bold uppercase tracking-wider block">
+                <span className="text-xs text-rose-300 font-medium block">
                   By Adiba Innovations
                 </span>
               </div>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              Transforming heartfelt greetings into memorable, animated, interactive celebrations.
-            </p>
             <div className="p-3 rounded-2xl bg-slate-900 border border-slate-800 text-xs">
-              <div className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-1">
+              <div className="text-[11px] font-bold text-slate-300 flex items-center gap-1.5 mb-0.5">
                 <Building2 className="w-3.5 h-3.5 text-rose-400" />
                 <span>Developer Company</span>
               </div>
               <p className="text-xs font-semibold text-rose-300">
                 Adiba Innovations
               </p>
-              <p className="text-[10px] text-slate-400 mt-0.5">
-                Pioneering joyful digital celebrations & creative software.
-              </p>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+            <h3 className="text-sm font-bold text-white mb-4">
               Explore Platform
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               <li>
                 <button onClick={() => onNavigate('home')} className="hover:text-white transition-colors">
@@ -55,7 +49,7 @@ export const Footer: React.FC<FooterProps> = ({ onSelectOccasion, onNavigate }) 
               </li>
               <li>
                 <button onClick={() => onNavigate('gallery')} className="hover:text-white transition-colors">
-                  All 16 Occasions
+                  All 17 Occasions
                 </button>
               </li>
               <li>
@@ -73,9 +67,9 @@ export const Footer: React.FC<FooterProps> = ({ onSelectOccasion, onNavigate }) 
 
           {/* Popular Occasions */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+            <h3 className="text-sm font-bold text-white mb-4">
               Popular Occasions
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               {['birthday', 'anniversary', 'mothers_day', 'fathers_day', 'eid_mubarak'].map((key) => {
                 const tmpl = EVENT_TEMPLATES[key as EventType];
@@ -96,9 +90,9 @@ export const Footer: React.FC<FooterProps> = ({ onSelectOccasion, onNavigate }) 
 
           {/* Developer & Legal */}
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white mb-4">
+            <h3 className="text-sm font-bold text-white mb-4">
               Company & Standards
-            </h4>
+            </h3>
             <ul className="space-y-2 text-xs text-slate-400">
               <li className="flex items-center gap-1.5 text-slate-300">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />

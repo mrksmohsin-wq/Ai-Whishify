@@ -15,7 +15,7 @@ export const OccasionsGallery: React.FC<OccasionsGalleryProps> = ({
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const categories = ['All', 'Celebration', 'Gratitude', 'Love', 'Milestone', 'Seasonal'];
+  const categories = ['All', 'Celebration', 'Gratitude', 'Love', 'Milestone', 'Seasonal', 'Comfort & Care'];
 
   const filteredEvents = ALL_EVENT_KEYS.filter((key) => {
     const tmpl = EVENT_TEMPLATES[key];
@@ -37,7 +37,7 @@ export const OccasionsGallery: React.FC<OccasionsGalleryProps> = ({
       <div className="text-center max-w-2xl mx-auto mb-8">
         <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-rose-100 text-rose-800 mb-2 border border-rose-200">
           <Sparkles className="w-3.5 h-3.5 text-rose-500" />
-          16 Handcrafted Templates
+          {ALL_EVENT_KEYS.length} Handcrafted Templates
         </span>
         <h1 className="text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight">
           Explore Celebration Experiences
